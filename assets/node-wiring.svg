@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 320">
+  <defs>
+    <linearGradient id="wbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#161b22"/>
+    </linearGradient>
+  </defs>
+  <rect width="860" height="320" rx="12" fill="url(#wbg)"/>
+
+  <text x="430" y="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#e6edf3" text-anchor="middle">Node Wiring in ComfyUI</text>
+
+  <!-- Node 1: Checkpoint Loader -->
+  <rect x="30" y="70" width="180" height="100" rx="8" fill="#1c2333" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="30" y="70" width="180" height="28" rx="8" fill="#2d333b"/>
+  <rect x="30" y="90" width="180" height="8" fill="#2d333b"/>
+  <text x="120" y="89" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#e6edf3" text-anchor="middle">Load Checkpoint</text>
+  <!-- Output dot -->
+  <circle cx="210" cy="120" r="6" fill="#79c0ff" stroke="#1c2333" stroke-width="2"/>
+  <text x="120" y="120" font-family="monospace" font-size="10" fill="#8b949e" text-anchor="middle">MODEL</text>
+  <circle cx="210" cy="145" r="6" fill="#d2a8ff" stroke="#1c2333" stroke-width="2"/>
+  <text x="140" y="145" font-family="monospace" font-size="10" fill="#8b949e" text-anchor="middle">CLIP</text>
+
+  <!-- Wire: Checkpoint -> SMC-CFG Ctrl -->
+  <path d="M 216 120 C 260 120, 260 120, 300 120" stroke="#79c0ff" stroke-width="2.5" fill="none"/>
+
+  <!-- Node 2: SMC-CFG Ctrl (highlighted) -->
+  <rect x="300" y="55" width="220" height="195" rx="8" fill="#1c2333" stroke="#e94560" stroke-width="2"/>
+  <rect x="300" y="55" width="220" height="28" rx="8" fill="#3d1a2e"/>
+  <rect x="300" y="75" width="220" height="8" fill="#3d1a2e"/>
+  <text x="410" y="74" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ff7b72" text-anchor="middle">SMC-CFG Ctrl</text>
+  <!-- Input dot -->
+  <circle cx="300" cy="120" r="6" fill="#79c0ff" stroke="#1c2333" stroke-width="2"/>
+  <text x="365" y="108" font-family="monospace" font-size="10" fill="#8b949e" text-anchor="middle">model</text>
+
+  <!-- Parameters -->
+  <rect x="315" y="120" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="325" y="135" font-family="monospace" font-size="10" fill="#d2a8ff">smc_cfg_lambda</text>
+  <text x="490" y="135" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">5.0</text>
+
+  <rect x="315" y="148" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="325" y="163" font-family="monospace" font-size="10" fill="#d2a8ff">smc_cfg_K</text>
+  <text x="490" y="163" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">0.2</text>
+
+  <rect x="315" y="176" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="325" y="191" font-family="monospace" font-size="10" fill="#d2a8ff">warmup_steps</text>
+  <text x="490" y="191" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">0</text>
+
+  <!-- Output dot -->
+  <circle cx="520" cy="120" r="6" fill="#79c0ff" stroke="#1c2333" stroke-width="2"/>
+  <text x="470" y="220" font-family="monospace" font-size="10" fill="#8b949e" text-anchor="middle">MODEL</text>
+
+  <!-- Wire: SMC-CFG -> KSampler -->
+  <path d="M 526 120 C 570 120, 570 120, 610 120" stroke="#79c0ff" stroke-width="2.5" fill="none"/>
+
+  <!-- Node 3: KSampler -->
+  <rect x="610" y="55" width="220" height="220" rx="8" fill="#1c2333" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="610" y="55" width="220" height="28" rx="8" fill="#2d333b"/>
+  <rect x="610" y="75" width="220" height="8" fill="#2d333b"/>
+  <text x="720" y="74" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#e6edf3" text-anchor="middle">KSampler</text>
+  <!-- Input dot -->
+  <circle cx="610" cy="120" r="6" fill="#79c0ff" stroke="#1c2333" stroke-width="2"/>
+  <text x="670" y="108" font-family="monospace" font-size="10" fill="#8b949e" text-anchor="middle">model</text>
+
+  <!-- KSampler params -->
+  <rect x="625" y="120" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="635" y="135" font-family="monospace" font-size="10" fill="#8b949e">steps</text>
+  <text x="800" y="135" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">20</text>
+
+  <rect x="625" y="148" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="635" y="163" font-family="monospace" font-size="10" fill="#f0883e">cfg</text>
+  <text x="800" y="163" font-family="monospace" font-size="10" fill="#f0883e" text-anchor="end">7.5</text>
+
+  <rect x="625" y="176" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="635" y="191" font-family="monospace" font-size="10" fill="#8b949e">sampler</text>
+  <text x="800" y="191" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">euler</text>
+
+  <rect x="625" y="204" width="190" height="22" rx="4" fill="#21262d"/>
+  <text x="635" y="219" font-family="monospace" font-size="10" fill="#8b949e">scheduler</text>
+  <text x="800" y="219" font-family="monospace" font-size="10" fill="#7ee787" text-anchor="end">normal</text>
+
+  <!-- Positive/Negative conditioning wires (from off-screen) -->
+  <circle cx="610" cy="145" r="6" fill="#d2a8ff" stroke="#1c2333" stroke-width="2"/>
+  <circle cx="610" cy="170" r="6" fill="#d2a8ff" stroke="#1c2333" stroke-width="2"/>
+
+  <!-- Legend -->
+  <text x="430" y="300" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#484f58" text-anchor="middle">Insert the SMC-CFG Ctrl node between your model loader and sampler. Use higher CFG scales than usual.</text>
+</svg>

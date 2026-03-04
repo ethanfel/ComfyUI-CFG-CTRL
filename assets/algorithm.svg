@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520">
+  <defs>
+    <linearGradient id="abg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#161b22"/>
+    </linearGradient>
+  </defs>
+  <rect width="880" height="520" rx="12" fill="url(#abg)"/>
+
+  <!-- Title -->
+  <text x="440" y="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#e6edf3" text-anchor="middle">Algorithm: Standard CFG vs SMC-CFG</text>
+
+  <!-- Left: Standard CFG -->
+  <rect x="30" y="60" width="390" height="430" rx="10" fill="#1c2333" stroke="#30363d" stroke-width="1.5"/>
+  <text x="225" y="90" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#f0883e" text-anchor="middle">Standard CFG (P-Control)</text>
+
+  <!-- Step boxes - Standard -->
+  <rect x="55" y="110" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="75" y="127" font-family="monospace" font-size="11" fill="#7ee787">1.</text>
+  <text x="95" y="127" font-family="monospace" font-size="11" fill="#c9d1d9">Compute conditional prediction</text>
+  <text x="95" y="145" font-family="monospace" font-size="12" font-weight="600" fill="#79c0ff">v_cond = model(x_t, t, prompt)</text>
+
+  <rect x="55" y="164" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="75" y="181" font-family="monospace" font-size="11" fill="#7ee787">2.</text>
+  <text x="95" y="181" font-family="monospace" font-size="11" fill="#c9d1d9">Compute unconditional prediction</text>
+  <text x="95" y="199" font-family="monospace" font-size="12" font-weight="600" fill="#79c0ff">v_uncond = model(x_t, t, "")</text>
+
+  <rect x="55" y="218" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="75" y="235" font-family="monospace" font-size="11" fill="#7ee787">3.</text>
+  <text x="95" y="235" font-family="monospace" font-size="11" fill="#c9d1d9">Guidance error (fixed gain)</text>
+  <text x="95" y="253" font-family="monospace" font-size="12" font-weight="600" fill="#79c0ff">e_t = v_cond - v_uncond</text>
+
+  <rect x="55" y="272" width="340" height="44" rx="6" fill="#21262d" stroke="#f85149" stroke-width="1.5"/>
+  <text x="75" y="289" font-family="monospace" font-size="11" fill="#7ee787">4.</text>
+  <text x="95" y="289" font-family="monospace" font-size="11" fill="#f85149">Linear combination (can diverge!)</text>
+  <text x="95" y="307" font-family="monospace" font-size="12" font-weight="600" fill="#ff7b72">v_out = v_uncond + w * e_t</text>
+
+  <!-- Problem callout -->
+  <rect x="55" y="340" width="340" height="70" rx="6" fill="#2d1117" stroke="#f85149" stroke-width="1"/>
+  <text x="75" y="362" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#f85149">Problem at high CFG scales:</text>
+  <text x="75" y="382" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#f0883e">Unbounded linear gain causes oversaturation,</text>
+  <text x="75" y="398" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#f0883e">artifacts, and semantic drift</text>
+
+  <!-- Right: SMC-CFG -->
+  <rect x="460" y="60" width="390" height="430" rx="10" fill="#1c2333" stroke="#30363d" stroke-width="1.5"/>
+  <text x="655" y="90" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#7ee787" text-anchor="middle">SMC-CFG (Sliding Mode Control)</text>
+
+  <!-- Step boxes - SMC -->
+  <rect x="485" y="110" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="505" y="127" font-family="monospace" font-size="11" fill="#7ee787">1.</text>
+  <text x="525" y="127" font-family="monospace" font-size="11" fill="#c9d1d9">Same: compute v_cond, v_uncond</text>
+  <text x="525" y="145" font-family="monospace" font-size="12" font-weight="600" fill="#79c0ff">e_t = v_cond - v_uncond</text>
+
+  <rect x="485" y="164" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="505" y="181" font-family="monospace" font-size="11" fill="#7ee787">2.</text>
+  <text x="525" y="181" font-family="monospace" font-size="11" fill="#c9d1d9">Compute sliding surface</text>
+  <text x="525" y="199" font-family="monospace" font-size="12" font-weight="600" fill="#d2a8ff">s_t = (e_t - e_{t-1}) + lambda * e_{t-1}</text>
+
+  <rect x="485" y="218" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="505" y="235" font-family="monospace" font-size="11" fill="#7ee787">3.</text>
+  <text x="525" y="235" font-family="monospace" font-size="11" fill="#c9d1d9">Nonlinear switching control</text>
+  <text x="525" y="253" font-family="monospace" font-size="12" font-weight="600" fill="#d2a8ff">u_sw = -K * sign(s_t)</text>
+
+  <rect x="485" y="272" width="340" height="44" rx="6" fill="#21262d" stroke="#30363d"/>
+  <text x="505" y="289" font-family="monospace" font-size="11" fill="#7ee787">4.</text>
+  <text x="525" y="289" font-family="monospace" font-size="11" fill="#c9d1d9">Bounded correction</text>
+  <text x="525" y="307" font-family="monospace" font-size="12" font-weight="600" fill="#d2a8ff">e_corrected = e_t + u_sw</text>
+
+  <rect x="485" y="326" width="340" height="44" rx="6" fill="#21262d" stroke="#7ee787" stroke-width="1.5"/>
+  <text x="505" y="343" font-family="monospace" font-size="11" fill="#7ee787">5.</text>
+  <text x="525" y="343" font-family="monospace" font-size="11" fill="#7ee787">Stable guided output</text>
+  <text x="525" y="361" font-family="monospace" font-size="12" font-weight="600" fill="#7ee787">v_out = v_uncond + w * e_corrected</text>
+
+  <!-- Solution callout -->
+  <rect x="485" y="394" width="340" height="70" rx="6" fill="#0d2818" stroke="#238636" stroke-width="1"/>
+  <text x="505" y="416" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#7ee787">Correction bounded to [-K, +K]:</text>
+  <text x="505" y="436" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#56d364">Prevents divergence at any CFG scale.</text>
+  <text x="505" y="452" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#56d364">Lyapunov-stable finite-time convergence.</text>
+
+  <!-- Arrow between panels -->
+  <path d="M 425 275 L 455 275" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#484f58"/>
+    </marker>
+  </defs>
+</svg>
