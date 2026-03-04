@@ -47,14 +47,9 @@ class SMCCFGCtrl:
         K = smc_cfg_K
 
         def smc_cfg_function(args):
-            # Use denoised-space predictions — these have consistent magnitude
-            # across sigma values. ComfyUI's args["cond"]/["uncond"] are
-            # (x - denoised), which are sigma-scaled and would make the fixed
-            # K correction dominate at low sigma (late steps), destroying the image.
-            cond_denoised = args["cond_denoised"]
-            uncond_denoised = args["uncond_denoised"]
+            cond = args["cond"]           # x - cond_denoised (sigma-scaled noise)
+            uncond = args["uncond"]       # x - uncond_denoised (sigma-scaled noise)
             cond_scale = args["cond_scale"]
-            x = args["input"]
             sigma = args["sigma"]
 
             # Detect new generation: sigma should decrease monotonically during
@@ -70,10 +65,16 @@ class SMCCFGCtrl:
 
             # Warmup: pure conditional prediction (no guidance)
             if warmup_steps > 0 and step < warmup_steps:
-                return x - cond_denoised
+                return cond
 
-            # Guidance error in denoised space (consistent magnitude across sigma)
-            guidance_eps = cond_denoised - uncond_denoised
+            # Normalize to noise-prediction space by dividing out sigma.
+            # The paper's K is calibrated for unit-variance noise predictions.
+            # ComfyUI's cond/uncond are (x - denoised) ≈ sigma * epsilon,
+            # so dividing by sigma recovers epsilon-space where K=0.2 is correct.
+            # Crucially, when converting back, the sigma factor naturally dampens
+            # the correction at late steps (small sigma), preventing noise injection.
+            sigma_val = max(curr_sigma, 1e-8)
+            guidance_eps = (cond - uncond) / sigma_val
 
             # Initialize prev_eps on first SMC step (matches original paper
             # where SMC correction is applied from the very first step)
@@ -88,17 +89,14 @@ class SMCCFGCtrl:
             # Switching control: u_sw = -K * sign(s_t)
             u_sw = -K * torch.sign(s)
 
-            # Corrected guidance error
+            # Corrected guidance error (in normalized noise space)
             guidance_eps = guidance_eps + u_sw
 
             # Store corrected guidance for next step's sliding surface
             state["prev_eps"] = guidance_eps.detach().clone()
 
-            # Guided denoised output
-            denoised = uncond_denoised + cond_scale * guidance_eps
-
-            # Return noise residual (framework computes cfg_result = x - return)
-            return x - denoised
+            # Convert back to sigma-scaled space and apply CFG
+            return uncond + cond_scale * guidance_eps * sigma_val
 
         m = model.clone()
         m.set_model_sampler_cfg_function(smc_cfg_function, disable_cfg1_optimization=True)
