@@ -90,15 +90,8 @@ class SMCCFGCtrl:
             # Smooth switching via tanh(s/phi) instead of hard sign(s).
             # The paper uses sign(s) which works in DiffSynth but creates
             # salt-and-pepper artifacts in ComfyUI's latent space. tanh
-            # provides the same bounded correction with smooth spatial
-            # gradients: proportional near zero, saturating at ±K for
-            # large |s|. phi normalizes s so the transition width matches
-            # the actual surface magnitude distribution.
-            #
-            # K is used at full strength (matching the paper) — the
-            # tanh smoothing + spatial blur handle artifact prevention.
-            # The paper's correction of cfg_scale * K per element in noise
-            # space is what provides the stabilization at high CFG.
+            # provides smooth spatial gradients: proportional near zero,
+            # saturating at ±K for large |s|.
             phi = s.std().clamp(min=1e-6)
             u_sw = -K * torch.tanh(s / phi)
 
@@ -107,14 +100,17 @@ class SMCCFGCtrl:
             if u_sw.ndim == 4:
                 u_sw = F.avg_pool2d(u_sw, kernel_size=5, stride=1, padding=2)
 
-            # Corrected guidance error (in normalized noise space)
-            guidance_eps = guidance_eps + u_sw
-
-            # Store corrected guidance for next step's sliding surface
+            # Store RAW guidance (before correction) for the next step's
+            # sliding surface. The paper stores corrected guidance, but in
+            # ComfyUI the corrections accumulate through the surface's
+            # lambda * prev_eps term (amplified 4x per step at lambda=5),
+            # overwhelming the actual guidance signal after a few steps.
+            # Storing raw guidance keeps the surface tracking the model's
+            # actual guidance evolution while applying corrections fresh.
             state["prev_eps"] = guidance_eps.detach().clone()
 
-            # Convert back to sigma-scaled space and apply CFG
-            return uncond + cond_scale * guidance_eps * sigma_val
+            # Apply correction and convert back to sigma-scaled space
+            return uncond + cond_scale * (guidance_eps + u_sw) * sigma_val
 
         m = model.clone()
         m.set_model_sampler_cfg_function(smc_cfg_function, disable_cfg1_optimization=True)
