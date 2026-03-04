@@ -86,14 +86,20 @@ class SMCCFGCtrl:
             # Sliding surface: s_t = (e_t - e_{t-1}) + lambda * e_{t-1}
             s = (guidance_eps - prev_eps) + lam * prev_eps
 
-            # Boundary layer SMC: replaces hard sign(s) with sat(s/phi).
-            # Hard sign() creates random ±1 in regions where |s| is near zero,
-            # which cond_scale amplifies into visible noise. The boundary layer
-            # uses a linear transition near zero (standard chattering prevention
-            # in practical SMC). phi adapts to the guidance magnitude so K stays
-            # meaningful across models with different guidance scales.
-            phi = guidance_eps.std().clamp(min=1e-6)
-            u_sw = -K * (s / phi).clamp(-1.0, 1.0)
+            # Compensate for CFG amplification: the return value multiplies
+            # u_sw by cond_scale, so the effective noise-space correction is
+            # cond_scale * K_eff. We want this to equal K (independent of cfg),
+            # so K_eff = K / cond_scale. Without this, cfg=12 with K=0.2 gives
+            # a correction of 2.4 per element — far too large.
+            K_eff = K / max(cond_scale, 1.0)
+
+            # Smooth switching via tanh(s/phi) instead of hard sign(s).
+            # sign() quantizes every element to ±1, creating a salt-and-pepper
+            # pattern that's visible as high-frequency noise. tanh provides
+            # a smooth transition: proportional near zero, saturating at ±1.
+            # phi normalizes s so the transition happens at the right scale.
+            phi = s.std().clamp(min=1e-6)
+            u_sw = -K_eff * torch.tanh(s / phi)
 
             # Corrected guidance error (in normalized noise space)
             guidance_eps = guidance_eps + u_sw
