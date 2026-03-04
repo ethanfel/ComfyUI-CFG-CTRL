@@ -87,27 +87,25 @@ class SMCCFGCtrl:
             # Sliding surface: s_t = (e_t - e_{t-1}) + lambda * e_{t-1}
             s = (guidance_eps - prev_eps) + lam * prev_eps
 
-            # Compensate for CFG amplification: the return value multiplies
-            # u_sw by cond_scale, so the effective noise-space correction is
-            # cond_scale * K_eff. We want this to equal K (independent of cfg),
-            # so K_eff = K / cond_scale. Without this, cfg=12 with K=0.2 gives
-            # a correction of 2.4 per element — far too large.
-            K_eff = K / max(cond_scale, 1.0)
-
             # Smooth switching via tanh(s/phi) instead of hard sign(s).
-            # sign() quantizes every element to ±1, creating a salt-and-pepper
-            # pattern that's visible as high-frequency noise. tanh provides
-            # a smooth transition: proportional near zero, saturating at ±1.
-            # phi normalizes s so the transition happens at the right scale.
+            # The paper uses sign(s) which works in DiffSynth but creates
+            # salt-and-pepper artifacts in ComfyUI's latent space. tanh
+            # provides the same bounded correction with smooth spatial
+            # gradients: proportional near zero, saturating at ±K for
+            # large |s|. phi normalizes s so the transition width matches
+            # the actual surface magnitude distribution.
+            #
+            # K is used at full strength (matching the paper) — the
+            # tanh smoothing + spatial blur handle artifact prevention.
+            # The paper's correction of cfg_scale * K per element in noise
+            # space is what provides the stabilization at high CFG.
             phi = s.std().clamp(min=1e-6)
-            u_sw = -K_eff * torch.tanh(s / phi)
+            u_sw = -K * torch.tanh(s / phi)
 
-            # Spatial smoothing: the per-element correction creates a grid
-            # pattern at latent boundaries (each latent = 8x8 pixels). A mild
-            # 3x3 box blur in latent space removes these artifacts while
-            # preserving the large-scale correction structure.
+            # Spatial smoothing: blur the correction to remove per-element
+            # grid artifacts at VAE patch boundaries (each latent = 8x8 px).
             if u_sw.ndim == 4:
-                u_sw = F.avg_pool2d(u_sw, kernel_size=3, stride=1, padding=1)
+                u_sw = F.avg_pool2d(u_sw, kernel_size=5, stride=1, padding=2)
 
             # Corrected guidance error (in normalized noise space)
             guidance_eps = guidance_eps + u_sw
