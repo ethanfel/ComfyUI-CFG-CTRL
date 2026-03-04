@@ -86,8 +86,14 @@ class SMCCFGCtrl:
             # Sliding surface: s_t = (e_t - e_{t-1}) + lambda * e_{t-1}
             s = (guidance_eps - prev_eps) + lam * prev_eps
 
-            # Switching control: u_sw = -K * sign(s_t)
-            u_sw = -K * torch.sign(s)
+            # Boundary layer SMC: replaces hard sign(s) with sat(s/phi).
+            # Hard sign() creates random ±1 in regions where |s| is near zero,
+            # which cond_scale amplifies into visible noise. The boundary layer
+            # uses a linear transition near zero (standard chattering prevention
+            # in practical SMC). phi adapts to the guidance magnitude so K stays
+            # meaningful across models with different guidance scales.
+            phi = guidance_eps.std().clamp(min=1e-6)
+            u_sw = -K * (s / phi).clamp(-1.0, 1.0)
 
             # Corrected guidance error (in normalized noise space)
             guidance_eps = guidance_eps + u_sw
