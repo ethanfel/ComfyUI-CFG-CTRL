@@ -4,6 +4,9 @@
   <img alt="SMC-CFG Ctrl — Sliding Mode Control for Classifier-Free Guidance" src="assets/banner.svg" width="100%">
 </picture>
 
+> [!CAUTION]
+> **NOT WORKING — Work in progress.** The paper's algorithm was designed for DiffSynth-Studio and does not translate directly to ComfyUI's k-diffusion sampling framework. Images are corrupted or artifacted at high CFG scales (e.g. cfg=12 on SDXL). Do not use this node in production workflows until this notice is removed.
+
 A ComfyUI node implementing **SMC-CFG** (Sliding Mode Control CFG) from the paper:
 
 > **CFG-Ctrl: A Control-Theoretic Perspective on Classifier-Free Guidance**
